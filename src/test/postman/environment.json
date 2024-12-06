@@ -1,0 +1,30 @@
+{
+  "id": "banking-api-environment",
+  "name": "Banking API Test",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "account_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "previous_balance",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ]
+}

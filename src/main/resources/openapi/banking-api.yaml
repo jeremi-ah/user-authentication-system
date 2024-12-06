@@ -1,0 +1,310 @@
+openapi: 3.0.3
+info:
+  title: Banking Account Management API
+  description: |
+    REST API for managing banking accounts, including operations for creating accounts,
+    deposits, withdrawals, and account management. This API follows REST principles
+    and uses JSON for request/response payloads.
+    
+    ## Features
+    - Account creation and management
+    - Deposit and withdrawal operations
+    - Balance enquiry
+    - Account deletion
+    
+    ## Error Handling
+    The API uses standard HTTP status codes and returns detailed error messages
+    when operations cannot be completed.
+  version: 1.0.0
+  contact:
+    name: Banking API Support
+    email: api.support@banking.dev
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+  - url: https://api.banking.dev
+    description: Production Server
+
+tags:
+  - name: accounts
+    description: Account management operations
+
+paths:
+  /api/accounts:
+    post:
+      tags:
+        - accounts
+      summary: Create new bank account
+      description: Creates a new bank account with the provided account holder details and initial balance
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreationRequest'
+            example:
+              accountHolderName: "John Doe"
+              balance: 1000.00
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - accounts
+      summary: Get all accounts
+      description: Retrieves a list of all bank accounts
+      operationId: getAllAccounts
+      responses:
+        '200':
+          description: List of all accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/accounts/{id}:
+    get:
+      tags:
+        - accounts
+      summary: Get account by ID
+      description: Retrieves account details for the specified account ID
+      operationId: getAccountById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Account details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - accounts
+      summary: Delete account
+      description: Deletes the specified account
+      operationId: deleteAccount
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Account ID to delete
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Account Deleted"
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/accounts/{id}/deposit:
+    put:
+      tags:
+        - accounts
+      summary: Deposit money
+      description: Deposits the specified amount into the account
+      operationId: depositMoney
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+            example:
+              amount: 500.00
+      responses:
+        '200':
+          description: Deposit successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/accounts/{id}/withdraw:
+    put:
+      tags:
+        - accounts
+      summary: Withdraw money
+      description: Withdraws the specified amount from the account
+      operationId: withdrawMoney
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+            example:
+              amount: 200.00
+      responses:
+        '200':
+          description: Withdrawal successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    AccountCreationRequest:
+      type: object
+      required:
+        - accountHolderName
+        - balance
+      properties:
+        accountHolderName:
+          type: string
+          description: Name of the account holder
+          example: "John Doe"
+          minLength: 2
+          maxLength: 100
+        balance:
+          type: number
+          format: double
+          description: Initial account balance
+          example: 1000.00
+          minimum: 0
+
+    AccountResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique account identifier
+          example: 1
+        accountHolderName:
+          type: string
+          description: Name of the account holder
+          example: "John Doe"
+        balance:
+          type: number
+          format: double
+          description: Current account balance
+          example: 1000.00
+
+    TransactionRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Transaction amount
+          example: 500.00
+          minimum: 0.01
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Time when the error occurred
+          example: "2024-11-28T10:00:00Z"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+        error:
+          type: string
+          description: Error type
+          example: "Not Found"
+        message:
+          type: string
+          description: Detailed error message
+          example: "Account not found"
+        path:
+          type: string
+          description: Request path
+          example: "/api/accounts/999"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
